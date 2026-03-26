@@ -8,7 +8,11 @@ import { Tags } from "lucide-react"
 export default async function TypesPage() {
   const types = await db.query.productTypes.findMany({
     orderBy: [asc(productTypes.name)],
-  }).catch(() => [])
+  }).catch((error) => {
+    console.error("DEBUG: Failed to fetch types:", error);
+    return [];
+  })
+
 
   return (
     <div className="flex-1 space-y-4 p-8 pt-6">

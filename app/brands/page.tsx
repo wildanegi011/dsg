@@ -8,7 +8,11 @@ import { Landmark } from "lucide-react"
 export default async function BrandsPage() {
   const brands = await db.query.productBrands.findMany({
     orderBy: [asc(productBrands.name)],
-  }).catch(() => [])
+  }).catch((error) => {
+    console.error("DEBUG: Failed to fetch brands:", error);
+    return [];
+  })
+
 
   return (
     <div className="flex-1 space-y-4 p-8 pt-6">

@@ -14,14 +14,24 @@ export default async function ProductsPage() {
         type: true,
       },
       orderBy: [desc(products.createdAt)],
-    }).catch(() => []),
+    }).catch((err) => {
+      console.error("DEBUG: Failed to fetch products:", err);
+      return [];
+    }),
     db.query.productBrands.findMany({
       orderBy: [asc(productBrands.name)],
-    }).catch(() => []),
+    }).catch((err) => {
+      console.error("DEBUG: Failed to fetch brands:", err);
+      return [];
+    }),
     db.query.productTypes.findMany({
       orderBy: [asc(productTypes.name)],
-    }).catch(() => []),
+    }).catch((err) => {
+      console.error("DEBUG: Failed to fetch types:", err);
+      return [];
+    }),
   ])
+
 
 
 
