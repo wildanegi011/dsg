@@ -31,7 +31,7 @@ import {
   FieldGroup,
 } from "@/components/ui/field"
 import { insertProductSchema } from "@/lib/db/validations"
-import { createProduct, updateProduct } from "@/lib/db/actions"
+// Removed server action imports
 import { toast } from "sonner"
 
 interface ProductDialogProps {
@@ -65,19 +65,28 @@ export function ProductDialog({ product, brands, productTypes, trigger }: Produc
 
   async function onSubmit(values: any) {
     try {
-      if (isEditing) {
-        await updateProduct(product.id, values)
-        toast.success("Product updated successfully")
-      } else {
-        await createProduct(values)
-        toast.success("Product created successfully")
+      const response = await fetch(isEditing ? `/api/products/${product.id}` : "/api/products", {
+        method: isEditing ? "PUT" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(values),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || "Failed to save product")
       }
+
+      toast.success(isEditing ? "Product updated successfully" : "Product created successfully")
       setOpen(false)
       reset()
+      window.location.reload() // Refresh to see changes
     } catch (error: any) {
       toast.error(error.message || "Something went wrong")
     }
   }
+
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

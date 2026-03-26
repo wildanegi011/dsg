@@ -1,14 +1,30 @@
-import { getProducts, getBrands, getProductTypes } from "@/lib/db/actions"
+import { db } from "@/lib/db"
+import { products, productBrands, productTypes } from "@/lib/db/schema"
+import { desc, asc } from "drizzle-orm"
 import { ProductTable } from "@/components/products/product-table"
 import { ProductDialog } from "@/components/products/product-dialog"
 import { Package } from "lucide-react"
 
 export default async function ProductsPage() {
-  const [products, brands, productTypes] = await Promise.all([
-    getProducts(),
-    getBrands(),
-    getProductTypes(),
+  // Fetch data directly in the server component for maximum stability
+  const [safeProducts, safeBrands, safeTypes] = await Promise.all([
+    db.query.products.findMany({
+      with: {
+        brand: true,
+        type: true,
+      },
+      orderBy: [desc(products.createdAt)],
+    }).catch(() => []),
+    db.query.productBrands.findMany({
+      orderBy: [asc(productBrands.name)],
+    }).catch(() => []),
+    db.query.productTypes.findMany({
+      orderBy: [asc(productTypes.name)],
+    }).catch(() => []),
   ])
+
+
+
 
   return (
     <div className="flex-1 space-y-4 p-8 pt-6">
@@ -25,14 +41,14 @@ export default async function ProductsPage() {
           </p>
         </div>
         <div className="flex items-center space-x-2 animate-in slide-in-from-right duration-500">
-          <ProductDialog brands={brands} productTypes={productTypes} />
+          <ProductDialog brands={safeBrands} productTypes={safeTypes} />
         </div>
       </div>
       <div className="animate-in fade-in zoom-in-95 duration-500 delay-200">
         <ProductTable 
-          products={products} 
-          brands={brands} 
-          productTypes={productTypes} 
+          products={safeProducts} 
+          brands={safeBrands} 
+          productTypes={safeTypes} 
         />
       </div>
     </div>

@@ -70,7 +70,7 @@ export function ProductTable({ products, brands, productTypes }: ProductTablePro
                   </Badge>
                 </TableCell>
                 <TableCell>
-                   <Badge variant="secondary" className="font-normal text-secondary-foreground/80">
+                  <Badge variant="secondary" className="font-normal text-secondary-foreground/80">
                     {product.type?.name}
                   </Badge>
                 </TableCell>
@@ -82,13 +82,12 @@ export function ProductTable({ products, brands, productTypes }: ProductTablePro
                   }).format(Number(product.price))}
                 </TableCell>
                 <TableCell className="text-center">
-                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                    product.stock > 10 
-                      ? "bg-green-100 text-green-800" 
-                      : product.stock > 0 
-                      ? "bg-yellow-100 text-yellow-800" 
+                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${product.stock > 10
+                    ? "bg-green-100 text-green-800"
+                    : product.stock > 0
+                      ? "bg-yellow-100 text-yellow-800"
                       : "bg-red-100 text-red-800"
-                  }`}>
+                    }`}>
                     {product.stock}
                   </span>
                 </TableCell>
@@ -118,8 +117,8 @@ export function ProductTable({ products, brands, productTypes }: ProductTablePro
                         productId={product.id}
                         productName={product.name}
                         trigger={
-                          <DropdownMenuItem 
-                            onSelect={(e) => e.preventDefault()} 
+                          <DropdownMenuItem
+                            onSelect={(e) => e.preventDefault()}
                             className="text-destructive cursor-pointer focus:bg-destructive/10 focus:text-destructive"
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
