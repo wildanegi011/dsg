@@ -45,7 +45,7 @@ export async function PUT(
       .update(products)
       .set({
         ...result.data,
-        price: result.data.price?.toString(),
+        price: result.data.price !== undefined ? Number(result.data.price) : undefined,
       })
       .where(eq(products.id, parseInt(id)))
       .returning();
