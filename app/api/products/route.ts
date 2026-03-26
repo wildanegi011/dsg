@@ -30,8 +30,9 @@ export async function POST(request: Request) {
 
     const [newProduct] = await db.insert(products).values({
       ...result.data,
-      price: result.data.price?.toString() as string
+      price: Number(result.data.price)
     }).returning();
+
 
     return NextResponse.json(newProduct, { status: 201 });
   } catch (error: any) {

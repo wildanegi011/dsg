@@ -7,6 +7,8 @@ import { Package } from "lucide-react"
 
 export default async function ProductsPage() {
   // Fetch data directly in the server component for maximum stability
+  console.log("DEBUG: Initializing database fetch in ProductsPage...");
+  
   const [safeProducts, safeBrands, safeTypes] = await Promise.all([
     db.query.products.findMany({
       with: {
@@ -18,19 +20,19 @@ export default async function ProductsPage() {
       console.error("DEBUG: Failed to fetch products:", err);
       return [];
     }),
-    db.query.productBrands.findMany({
-      orderBy: [asc(productBrands.name)],
-    }).catch((err) => {
+    db.select().from(productBrands).orderBy(asc(productBrands.name)).catch((err) => {
       console.error("DEBUG: Failed to fetch brands:", err);
       return [];
     }),
-    db.query.productTypes.findMany({
-      orderBy: [asc(productTypes.name)],
-    }).catch((err) => {
+    db.select().from(productTypes).orderBy(asc(productTypes.name)).catch((err) => {
       console.error("DEBUG: Failed to fetch types:", err);
       return [];
     }),
   ])
+
+
+  console.log(`DEBUG: Fetch complete. Products: ${safeProducts.length}, Brands: ${safeBrands.length}, Types: ${safeTypes.length}`);
+
 
 
 
@@ -38,6 +40,12 @@ export default async function ProductsPage() {
 
   return (
     <div className="flex-1 space-y-4 p-8 pt-6">
+      {safeBrands.length === 0 && (
+        <div className="p-4 border border-yellow-200 bg-yellow-50 text-yellow-800 rounded-lg text-sm italic">
+          Warning: No brands found in database. Please add them in the Brands page.
+        </div>
+      )}
+
       <div className="flex items-center justify-between space-y-2">
         <div>
           <h2 className="text-3xl font-extrabold tracking-tight text-foreground flex items-center gap-3 animate-in slide-in-from-left duration-300">
