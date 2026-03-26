@@ -17,6 +17,8 @@ import {
 import { Button } from "@/components/ui/button"
 // Removed server action import
 import { toast } from "sonner"
+import { useProducts } from "@/hooks/use-products"
+
 
 interface DeleteProductDialogProps {
   productId: number
@@ -28,27 +30,17 @@ export function DeleteProductDialog({ productId, productName, trigger }: DeleteP
   const [open, setOpen] = React.useState(false)
   const [isDeleting, setIsDeleting] = React.useState(false)
 
+  const { deleteProduct } = useProducts()
+
   async function onDelete() {
     try {
-      setIsDeleting(true)
-      const response = await fetch(`/api/products/${productId}`, {
-        method: "DELETE",
-      })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || "Failed to delete product")
-      }
-
-      toast.success(`${productName} deleted successfully`)
+      await deleteProduct.mutateAsync(productId)
       setOpen(false)
-      window.location.reload() // Refresh to see changes
     } catch (error: any) {
-      toast.error(error.message || "Failed to delete product")
-    } finally {
-      setIsDeleting(false)
+      // Error handled by mutation onError
     }
   }
+
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
@@ -67,18 +59,19 @@ export function DeleteProductDialog({ productId, productName, trigger }: DeleteP
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={deleteProduct.isPending}>Cancel</AlertDialogCancel>
           <AlertDialogAction
             onClick={(e) => {
               e.preventDefault()
               onDelete()
             }}
-            disabled={isDeleting}
+            disabled={deleteProduct.isPending}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            {isDeleting ? "Deleting..." : "Delete Product"}
+            {deleteProduct.isPending ? "Deleting..." : "Delete Product"}
           </AlertDialogAction>
         </AlertDialogFooter>
+
       </AlertDialogContent>
     </AlertDialog>
   )

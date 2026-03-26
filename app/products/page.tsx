@@ -1,45 +1,51 @@
-import { db } from "@/lib/db"
-import { products, productBrands, productTypes } from "@/lib/db/schema"
-import { desc, asc } from "drizzle-orm"
+"use client"
+
+import * as React from "react"
+import { useProducts } from "@/hooks/use-products"
+import { useBrands } from "@/hooks/use-brands"
+import { useTypes } from "@/hooks/use-types"
 import { ProductTable } from "@/components/products/product-table"
 import { ProductDialog } from "@/components/products/product-dialog"
-import { Package } from "lucide-react"
+import { Package, Loader2, Search, Filter } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
-export default async function ProductsPage() {
-  // Fetch data directly in the server component for maximum stability
-  console.log("DEBUG: Initializing database fetch in ProductsPage...");
-  
-  const [safeProducts, safeBrands, safeTypes] = await Promise.all([
-    db.query.products.findMany({
-      with: {
-        brand: true,
-        type: true,
-      },
-      orderBy: [desc(products.createdAt)],
-    }).catch((err) => {
-      console.error("DEBUG: Failed to fetch products:", err);
-      return [];
-    }),
-    db.select().from(productBrands).orderBy(asc(productBrands.name)).catch((err) => {
-      console.error("DEBUG: Failed to fetch brands:", err);
-      return [];
-    }),
-    db.select().from(productTypes).orderBy(asc(productTypes.name)).catch((err) => {
-      console.error("DEBUG: Failed to fetch types:", err);
-      return [];
-    }),
-  ])
+export default function ProductsPage() {
+  const { productsQuery } = useProducts()
+  const { brandsQuery } = useBrands()
+  const { typesQuery } = useTypes()
 
+  const [searchQuery, setSearchQuery] = React.useState("")
+  const [selectedBrandId, setSelectedBrandId] = React.useState<string>("all")
 
-  console.log(`DEBUG: Fetch complete. Products: ${safeProducts.length}, Brands: ${safeBrands.length}, Types: ${safeTypes.length}`);
+  const isLoading = productsQuery.isLoading || brandsQuery.isLoading || typesQuery.isLoading
 
+  if (isLoading) {
+    return (
+      <div className="flex h-[450px] w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary/50" />
+      </div>
+    )
+  }
 
+  const safeProducts = productsQuery.data || []
+  const safeBrands = brandsQuery.data || []
+  const safeTypes = typesQuery.data || []
 
-
-
+  const filteredProducts = safeProducts.filter((product) => {
+    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesBrand = selectedBrandId === "all" || product.brandId?.toString() === selectedBrandId
+    return matchesSearch && matchesBrand
+  })
 
   return (
-    <div className="flex-1 space-y-4 p-8 pt-6">
+    <div className="flex-1 space-y-6 p-8 pt-6">
       {safeBrands.length === 0 && (
         <div className="p-4 border border-yellow-200 bg-yellow-50 text-yellow-800 rounded-lg text-sm italic">
           Warning: No brands found in database. Please add them in the Brands page.
@@ -62,9 +68,41 @@ export default async function ProductsPage() {
           <ProductDialog brands={safeBrands} productTypes={safeTypes} />
         </div>
       </div>
+
+      <div className="flex flex-col sm:flex-row gap-4 animate-in fade-in duration-700">
+        <div className="relative flex-1 group">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+          <Input
+            placeholder="Search products by name..."
+            className="pl-10 h-10 bg-card border-muted-foreground/20 focus-visible:ring-primary shadow-sm"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 px-3 h-10 rounded-md bg-muted/50 border border-transparent text-sm text-muted-foreground">
+            <Filter className="h-4 w-4" />
+            <span>Filter:</span>
+          </div>
+          <Select value={selectedBrandId} onValueChange={setSelectedBrandId}>
+            <SelectTrigger className="w-[180px] h-10 bg-card border-muted-foreground/20 shadow-sm">
+              <SelectValue placeholder="All Brands" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Brands</SelectItem>
+              {safeBrands.map((brand) => (
+                <SelectItem key={brand.id} value={brand.id.toString()}>
+                  {brand.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
       <div className="animate-in fade-in zoom-in-95 duration-500 delay-200">
         <ProductTable 
-          products={safeProducts} 
+          products={filteredProducts} 
           brands={safeBrands} 
           productTypes={safeTypes} 
         />
@@ -72,3 +110,5 @@ export default async function ProductsPage() {
     </div>
   )
 }
+
+

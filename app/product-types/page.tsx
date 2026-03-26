@@ -1,18 +1,22 @@
-import { db } from "@/lib/db"
-import { productTypes } from "@/lib/db/schema"
-import { asc } from "drizzle-orm"
+"use client"
+
+import { useTypes } from "@/hooks/use-types"
 import { TypeTable } from "@/components/types/type-table"
 import { TypeDialog } from "@/components/types/type-dialog"
-import { Tags } from "lucide-react"
+import { Tags, Loader2 } from "lucide-react"
 
-export default async function TypesPage() {
-  const types = await db.query.productTypes.findMany({
-    orderBy: [asc(productTypes.name)],
-  }).catch((error) => {
-    console.error("DEBUG: Failed to fetch types:", error);
-    return [];
-  })
+export default function TypesPage() {
+  const { typesQuery } = useTypes()
 
+  if (typesQuery.isLoading) {
+    return (
+      <div className="flex h-[450px] w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary/50" />
+      </div>
+    )
+  }
+
+  const types = typesQuery.data || []
 
   return (
     <div className="flex-1 space-y-4 p-8 pt-6">
@@ -38,3 +42,4 @@ export default async function TypesPage() {
     </div>
   )
 }
+

@@ -33,6 +33,8 @@ import {
 import { insertProductSchema } from "@/lib/db/validations"
 // Removed server action imports
 import { toast } from "sonner"
+import { useProducts } from "@/hooks/use-products"
+
 
 interface ProductDialogProps {
   product?: any
@@ -63,29 +65,22 @@ export function ProductDialog({ product, brands, productTypes, trigger }: Produc
     },
   })
 
+  const { createProduct, updateProduct } = useProducts()
+
   async function onSubmit(values: any) {
     try {
-      const response = await fetch(isEditing ? `/api/products/${product.id}` : "/api/products", {
-        method: isEditing ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(values),
-      })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || "Failed to save product")
+      if (isEditing) {
+        await updateProduct.mutateAsync({ id: product.id, ...values })
+      } else {
+        await createProduct.mutateAsync(values)
       }
-
-      toast.success(isEditing ? "Product updated successfully" : "Product created successfully")
       setOpen(false)
       reset()
-      window.location.reload() // Refresh to see changes
     } catch (error: any) {
-      toast.error(error.message || "Something went wrong")
+      // Error handled by mutation onError
     }
   }
+
 
 
   return (

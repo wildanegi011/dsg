@@ -1,18 +1,22 @@
-import { db } from "@/lib/db"
-import { productBrands } from "@/lib/db/schema"
-import { asc } from "drizzle-orm"
+"use client"
+
+import { useBrands } from "@/hooks/use-brands"
 import { BrandTable } from "@/components/brands/brand-table"
 import { BrandDialog } from "@/components/brands/brand-dialog"
-import { Landmark } from "lucide-react"
+import { Landmark, Loader2 } from "lucide-react"
 
-export default async function BrandsPage() {
-  const brands = await db.query.productBrands.findMany({
-    orderBy: [asc(productBrands.name)],
-  }).catch((error) => {
-    console.error("DEBUG: Failed to fetch brands:", error);
-    return [];
-  })
+export default function BrandsPage() {
+  const { brandsQuery } = useBrands()
 
+  if (brandsQuery.isLoading) {
+    return (
+      <div className="flex h-[450px] w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary/50" />
+      </div>
+    )
+  }
+
+  const brands = brandsQuery.data || []
 
   return (
     <div className="flex-1 space-y-4 p-8 pt-6">
@@ -38,3 +42,4 @@ export default async function BrandsPage() {
     </div>
   )
 }
+
